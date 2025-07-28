@@ -442,6 +442,91 @@ server.tool(
 );
 
 server.tool(
+    "switch_to_frame",
+    "switches to an iframe or frame on the page",
+    {
+        by: {
+            type: "string",
+            enum: ["id", "css", "xpath", "name", "tag", "class"],
+            description: "Locator strategy to find the frame element"
+        },
+        value: {
+            type: "string",
+            description: "Value for the locator strategy"
+        },
+        timeout: {
+            type: "number",
+            description: "Maximum time to wait for frame in milliseconds",
+            default: 5000
+        }
+    },
+    async (params) => {
+        try {
+            const driver = getDriver();
+            const { by, value, timeout = 5000 } = params;
+            
+            // Create locator based on 'by' strategy
+            let locator;
+            switch (by) {
+                case 'id':
+                    locator = webdriver.By.id(value);
+                    break;
+                case 'css':
+                    locator = webdriver.By.css(value);
+                    break;
+                case 'xpath':
+                    locator = webdriver.By.xpath(value);
+                    break;
+                case 'name':
+                    locator = webdriver.By.name(value);
+                    break;
+                case 'tag':
+                    locator = webdriver.By.tagName(value);
+                    break;
+                case 'class':
+                    locator = webdriver.By.className(value);
+                    break;
+                default:
+                    throw new Error(`Unsupported locator strategy: ${by}`);
+            }
+
+            // Find the frame element
+            const frameElement = await driver.wait(webdriver.until.elementLocated(locator), timeout);
+            
+            // Switch to the frame
+            await driver.switchTo().frame(frameElement);
+            
+            return {
+                content: [{ type: 'text', text: `Switched to frame using ${by}="${value}"` }]
+            };
+        } catch (e) {
+            return {
+                content: [{ type: 'text', text: `Error switching to frame: ${e.message}` }]
+            };
+        }
+    }
+);
+
+server.tool(
+    "switch_to_default_content",
+    "switches back to the main page content from iframe",
+    {},
+    async () => {
+        try {
+            const driver = getDriver();
+            await driver.switchTo().defaultContent();
+            return {
+                content: [{ type: 'text', text: 'Switched back to default content' }]
+            };
+        } catch (e) {
+            return {
+                content: [{ type: 'text', text: `Error switching to default content: ${e.message}` }]
+            };
+        }
+    }
+);
+
+server.tool(
     "close_session",
     "closes the current browser session",
     {},
