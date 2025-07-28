@@ -423,6 +423,25 @@ server.tool(
 );
 
 server.tool(
+    "get_page_source",
+    "gets the HTML source code of the current page",
+    {},
+    async () => {
+        try {
+            const driver = getDriver();
+            const pageSource = await driver.getPageSource();
+            return {
+                content: [{ type: 'text', text: pageSource }]
+            };
+        } catch (e) {
+            return {
+                content: [{ type: 'text', text: `Error getting page source: ${e.message}` }]
+            };
+        }
+    }
+);
+
+server.tool(
     "close_session",
     "closes the current browser session",
     {},
